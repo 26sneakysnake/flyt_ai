@@ -1,0 +1,71 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: flightbrief-postgres
+    environment:
+      POSTGRES_USER: flightbrief
+      POSTGRES_PASSWORD: flightbrief_password
+      POSTGRES_DB: flightbrief
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - flightbrief-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U flightbrief"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: flightbrief-backend
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - DATABASE_URL=postgresql://flightbrief:flightbrief_password@postgres:5432/flightbrief
+      - UPLOAD_DIR=/tmp/uploads
+      - MAX_FILE_SIZE=20971520
+      - CORS_ORIGINS=http://localhost:3000
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+      - upload_data:/tmp/uploads
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - flightbrief-network
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: flightbrief-frontend
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
+    depends_on:
+      - backend
+    networks:
+      - flightbrief-network
+    command: npm run dev
+
+volumes:
+  postgres_data:
+  upload_data:
+
+networks:
+  flightbrief-network:
+    driver: bridge
