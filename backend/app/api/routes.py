@@ -17,6 +17,7 @@ from app.models.schemas import (
     FlightPlanSection
 )
 from app.services import PDFParser, AIAnalyzer, PDFGenerator
+from app.services.flight_data_extractor import FlightDataExtractor
 
 logger = logging.getLogger(__name__)
 
@@ -29,6 +30,7 @@ file_storage: Dict[str, dict] = {}
 pdf_parser = PDFParser()
 ai_analyzer = AIAnalyzer()
 pdf_generator = PDFGenerator()
+flight_extractor = FlightDataExtractor()
 
 # Get upload directory from environment
 UPLOAD_DIR = os.getenv("UPLOAD_DIR", "/tmp/uploads")
@@ -145,16 +147,26 @@ async def analyze_pdf(request: AnalysisRequest):
         logger.info(f"Generating overall summary")
         overall_summary = await ai_analyzer.generate_overall_summary(analyzed_sections)
 
+        # Extract flight data from OFP section
+        logger.info(f"Extracting flight data")
+        flight_data = None
+        for section in identified_sections:
+            if "OFP" in section["name"].upper() or "FLIGHT PLAN" in section["name"].upper():
+                flight_data = await flight_extractor.extract_flight_data(section["text"])
+                break
+
         # Store analysis results
         file_storage[request.file_id]["sections"] = analyzed_sections
         file_storage[request.file_id]["overall_summary"] = overall_summary
+        file_storage[request.file_id]["flight_data"] = flight_data
         file_storage[request.file_id]["analyzed"] = True
 
         return AnalysisResponse(
             file_id=request.file_id,
             sections=analyzed_sections,
             total_pages=file_info["total_pages"],
-            analysis_summary=overall_summary
+            analysis_summary=overall_summary,
+            flight_data=flight_data
         )
 
     except Exception as e:

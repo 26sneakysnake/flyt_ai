@@ -28,11 +28,32 @@ class AnalysisRequest(BaseModel):
     file_id: str = Field(..., description="File ID from upload response")
 
 
+class FlightData(BaseModel):
+    """Core flight information extracted from the plan"""
+    flight_number: Optional[str] = Field(None, description="Flight number (e.g., AF447)")
+    aircraft_type: Optional[str] = Field(None, description="Aircraft type (e.g., B777-300ER)")
+    aircraft_registration: Optional[str] = Field(None, description="Aircraft registration (e.g., F-GZNE)")
+    airline: Optional[str] = Field(None, description="Airline name")
+    airline_icao: Optional[str] = Field(None, description="Airline ICAO code")
+    departure_icao: Optional[str] = Field(None, description="Departure airport ICAO")
+    departure_name: Optional[str] = Field(None, description="Departure airport name")
+    arrival_icao: Optional[str] = Field(None, description="Arrival airport ICAO")
+    arrival_name: Optional[str] = Field(None, description="Arrival airport name")
+    alternate_icao: Optional[str] = Field(None, description="Alternate airport ICAO")
+    departure_time: Optional[str] = Field(None, description="Scheduled departure time")
+    arrival_time: Optional[str] = Field(None, description="Estimated arrival time")
+    flight_time: Optional[str] = Field(None, description="Total flight time")
+    route: Optional[str] = Field(None, description="Flight route")
+    cruise_altitude: Optional[str] = Field(None, description="Cruise altitude (FL)")
+    fuel_planned: Optional[str] = Field(None, description="Planned fuel")
+
+
 class AnalysisResponse(BaseModel):
     file_id: str
     sections: List[FlightPlanSection]
     total_pages: int
     analysis_summary: str = Field(..., description="Overall AI-generated summary")
+    flight_data: Optional[FlightData] = Field(None, description="Extracted flight information")
 
 
 class SectionSelection(BaseModel):

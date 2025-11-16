@@ -31,8 +31,8 @@ export default function HomePage() {
       // Store analysis data in sessionStorage for the next page
       sessionStorage.setItem('analysisData', JSON.stringify(analysisResponse))
 
-      // Navigate to selection page
-      router.push('/select')
+      // Navigate to briefing dashboard
+      router.push('/briefing')
     } catch (err: any) {
       console.error('Error processing file:', err)
       setError(
@@ -52,9 +52,9 @@ export default function HomePage() {
           <div className="flex items-center gap-3">
             <Plane className="w-8 h-8 text-blue-600" />
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">FlightBrief AI</h1>
+              <h1 className="text-3xl font-bold text-gray-900">flyt.ai</h1>
               <p className="text-sm text-gray-600">
-                AI-Powered Flight Plan Analysis & Briefing
+                AI-Powered Flight Briefing System
               </p>
             </div>
           </div>
@@ -123,7 +123,7 @@ export default function HomePage() {
       <footer className="bg-white border-t mt-auto">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <p className="text-center text-sm text-gray-500">
-            FlightBrief AI MVP v0.1 - For demonstration purposes only
+            flyt.ai v0.1 - Professional Flight Briefing System
           </p>
         </div>
       </footer>

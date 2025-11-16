@@ -5,8 +5,8 @@ import './globals.css'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'FlightBrief AI',
-  description: 'AI-powered flight plan analysis and briefing generation',
+  title: 'flyt.ai',
+  description: 'AI-powered flight briefing system',
 }
 
 export default function RootLayout({

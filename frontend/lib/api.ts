@@ -15,11 +15,31 @@ export interface UploadResponse {
   message: string
 }
 
+export interface FlightData {
+  flight_number?: string | null
+  aircraft_type?: string | null
+  aircraft_registration?: string | null
+  airline?: string | null
+  airline_icao?: string | null
+  departure_icao?: string | null
+  departure_name?: string | null
+  arrival_icao?: string | null
+  arrival_name?: string | null
+  alternate_icao?: string | null
+  departure_time?: string | null
+  arrival_time?: string | null
+  flight_time?: string | null
+  route?: string | null
+  cruise_altitude?: string | null
+  fuel_planned?: string | null
+}
+
 export interface AnalysisResponse {
   file_id: string
   sections: FlightPlanSection[]
   total_pages: number
   analysis_summary: string
+  flight_data?: FlightData | null
 }
 
 export interface SectionSelection {

@@ -11,8 +11,8 @@ load_dotenv()
 
 # Create FastAPI app
 app = FastAPI(
-    title="FlightBrief AI API",
-    description="AI-powered flight plan analysis and briefing generation",
+    title="flyt.ai API",
+    description="AI-powered flight briefing system",
     version="0.1.0"
 )
 
@@ -44,7 +44,7 @@ async def health_check():
 @app.get("/")
 async def root():
     return {
-        "message": "FlightBrief AI API",
+        "message": "flyt.ai API",
         "version": "0.1.0",
         "docs": "/docs"
     }
