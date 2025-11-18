@@ -30,8 +30,8 @@ class FlightDataExtractor:
         Returns:
             FlightData object with extracted information
         """
-        # Limit text to avoid token limits (first 8000 chars of OFP contains most key info)
-        text_sample = ofp_text[:8000]
+        # Increase text sample to capture more pages (including page 3 with Weights)
+        text_sample = ofp_text[:12000]
 
         prompt = f"""Extract comprehensive flight information from this Operational Flight Plan (OFP).
 
@@ -56,18 +56,18 @@ Return ONLY valid JSON with this COMPLETE structure:
     "flight_time": "string or null (leave as null)",
     "air_time": "string or null (e.g., '8:25')",
     "block_time": "string or null (e.g., '8:45')",
-    "route": "string or null (waypoints)",
+    "route": "string or null (full route with waypoints and FLs)",
     "route_distance": "string or null (e.g., '3450 NM')",
-    "cruise_altitude": "string or null (e.g., 'FL350')",
+    "cruise_altitude": "string or null (e.g., 'FL350' - extract from route if not explicit)",
     "ci_value": "string or null (Cost Index, e.g., '52')",
     "average_wind": "string or null (e.g., 'H045/25' for headwind)",
     "fuel_planned": "string or null (BLOCK FUEL with unit)",
-    "passenger_count": "string or null (e.g., '285 PAX')",
-    "baggage": "string or null (weight with unit)",
-    "payload": "string or null (weight with unit)",
-    "ezfw": "string or null (Est Zero Fuel Weight)",
-    "etow": "string or null (Est Take-Off Weight)",
-    "elw": "string or null (Est Landing Weight)",
+    "passenger_count": "string or null (e.g., '285 PAX' - look in WEIGHTS or Weight & Balance section, page 3)",
+    "baggage": "string or null (weight with unit - look for 'BAG' or 'BAGGAGE' in WEIGHTS section)",
+    "payload": "string or null (weight with unit - look in WEIGHTS section as 'PAYLOAD' or 'PAYLOD')",
+    "ezfw": "string or null (Est Zero Fuel Weight - ZFW in WEIGHTS section)",
+    "etow": "string or null (Est Take-Off Weight - TOW in WEIGHTS section)",
+    "elw": "string or null (Est Landing Weight - LW in WEIGHTS section)",
     "metar_departure": "string or null (full METAR)",
     "metar_arrival": "string or null (full METAR)"
 }}
@@ -76,12 +76,24 @@ CRITICAL EXTRACTION INSTRUCTIONS:
 1. TIMING: Extract departure/arrival in HHMM format, find AIR TIME and BLOCK TIME explicitly
 2. FUEL: Look for "BLOCK FUEL" or "BLOCK" in fuel section
 3. PERFORMANCE: Find CI (Cost Index), route distance in NM, average wind component
-4. LOAD SHEET: Look for passenger count (PAX), baggage, payload, ZFW, TOW, LW sections
-5. WEATHER: Extract complete METAR strings for departure and arrival airports
-6. DATE: Find flight date (usually at top of OFP in format like "18NOV2025" or "18 NOV 2025")
-7. Use null for any field not found
-8. Include units (KG/LBS for weights, NM for distance)
-9. Leave flight_time as null (will be calculated)"""
+4. LOAD SHEET / WEIGHTS (VERY IMPORTANT - typically on page 3):
+   - Look for section titled "WEIGHTS", "WEIGHT & BALANCE", or "W/B"
+   - PAX/PASSENGERS: Look for "PAX" or "PASSENGERS" field
+   - BAGGAGE: Look for "BAG", "BAGGAGE", or "CARGO" field
+   - PAYLOAD: Look for "PAYLOAD" or "PAYLOD" (common typo)
+   - ZFW/EZFW: Zero Fuel Weight
+   - TOW/ETOW: Take-Off Weight
+   - LW/ELW: Landing Weight
+5. CRUISE ALTITUDE:
+   - First look for explicit "CRUISE FL" or "CRUISE ALTITUDE"
+   - If not found, extract from route (look for highest FL in waypoint sequence)
+   - Route format often shows: "WAYPOINT/FL350 WAYPOINT2/FL370" - extract highest FL
+6. WEATHER: Extract complete METAR strings for departure and arrival airports
+7. DATE: Find flight date (usually at top of OFP in format like "18NOV2025" or "18 NOV 2025")
+8. ROUTE: Include full route with ALL waypoints and flight levels if present
+9. Use null for any field not found
+10. Include units (KG/LBS for weights, NM for distance, FL for altitudes)
+11. Leave flight_time as null (will be calculated)"""
 
         try:
             response = openai.chat.completions.create(
