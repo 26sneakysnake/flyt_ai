@@ -6,10 +6,10 @@ interface CriticalityBadgeProps {
 }
 
 const badgeStyles = {
-  CRITICAL: 'bg-red-100 text-red-800 border-red-300',
-  WARNING: 'bg-orange-100 text-orange-800 border-orange-300',
-  NORMAL: 'bg-green-100 text-green-800 border-green-300',
-  INFO: 'bg-blue-100 text-blue-800 border-blue-300',
+  CRITICAL: 'bg-red-500/20 text-red-300 border-red-500/50',
+  WARNING: 'bg-orange-500/20 text-orange-300 border-orange-500/50',
+  NORMAL: 'bg-green-500/20 text-green-300 border-green-500/50',
+  INFO: 'bg-blue-500/20 text-blue-300 border-blue-500/50',
 }
 
 const badgeIcons = {
