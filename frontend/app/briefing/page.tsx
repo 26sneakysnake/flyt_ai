@@ -9,14 +9,14 @@ import {
   Clock,
   Fuel,
   CloudRain,
-  ArrowRight,
   Navigation,
   Settings,
   Users,
   Package,
   Weight,
   Wind,
-  Calendar
+  Calendar,
+  Home
 } from 'lucide-react'
 import LoadingSpinner from '@/components/LoadingSpinner'
 
@@ -43,8 +43,10 @@ export default function BriefingPage() {
     }
   }, [router])
 
-  const handleContinueToSections = () => {
-    router.push('/select')
+  const handleNewFlightPlan = () => {
+    // Clear session storage and go back to home
+    sessionStorage.removeItem('analysisData')
+    router.push('/')
   }
 
   if (loading || !analysisData) {
@@ -82,11 +84,11 @@ export default function BriefingPage() {
                 <div className="text-white text-sm font-medium">{today}</div>
               </div>
               <button
-                onClick={handleContinueToSections}
-                className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
+                onClick={handleNewFlightPlan}
+                className="px-6 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg font-medium transition-colors flex items-center gap-2 border border-white/20"
               >
-                Continue to Sections
-                <ArrowRight className="w-4 h-4" />
+                <Home className="w-4 h-4" />
+                New Flight Plan
               </button>
             </div>
           </div>
