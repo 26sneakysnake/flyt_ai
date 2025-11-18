@@ -16,22 +16,49 @@ export interface UploadResponse {
 }
 
 export interface FlightData {
+  // Basic Info
   flight_number?: string | null
+  flight_date?: string | null
   aircraft_type?: string | null
   aircraft_registration?: string | null
   airline?: string | null
   airline_icao?: string | null
+
+  // Route Info
   departure_icao?: string | null
   departure_name?: string | null
   arrival_icao?: string | null
   arrival_name?: string | null
   alternate_icao?: string | null
+
+  // Timing
   departure_time?: string | null
   arrival_time?: string | null
   flight_time?: string | null
+  air_time?: string | null
+  block_time?: string | null
+
+  // Route & Performance
   route?: string | null
+  route_distance?: string | null
   cruise_altitude?: string | null
+  ci_value?: string | null
+  average_wind?: string | null
+
+  // Fuel
   fuel_planned?: string | null
+
+  // Load Sheet
+  passenger_count?: string | null
+  baggage?: string | null
+  payload?: string | null
+  ezfw?: string | null
+  etow?: string | null
+  elw?: string | null
+
+  // Weather
+  metar_departure?: string | null
+  metar_arrival?: string | null
 }
 
 export interface AnalysisResponse {

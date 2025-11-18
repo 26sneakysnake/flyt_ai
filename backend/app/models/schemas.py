@@ -30,22 +30,49 @@ class AnalysisRequest(BaseModel):
 
 class FlightData(BaseModel):
     """Core flight information extracted from the plan"""
+    # Basic Info
     flight_number: Optional[str] = Field(None, description="Flight number (e.g., AF447)")
+    flight_date: Optional[str] = Field(None, description="Flight date (e.g., 18 NOV 2025)")
     aircraft_type: Optional[str] = Field(None, description="Aircraft type (e.g., B777-300ER)")
     aircraft_registration: Optional[str] = Field(None, description="Aircraft registration (e.g., F-GZNE)")
     airline: Optional[str] = Field(None, description="Airline name")
     airline_icao: Optional[str] = Field(None, description="Airline ICAO code")
+
+    # Route Info
     departure_icao: Optional[str] = Field(None, description="Departure airport ICAO")
     departure_name: Optional[str] = Field(None, description="Departure airport name")
     arrival_icao: Optional[str] = Field(None, description="Arrival airport ICAO")
     arrival_name: Optional[str] = Field(None, description="Arrival airport name")
     alternate_icao: Optional[str] = Field(None, description="Alternate airport ICAO")
+
+    # Timing
     departure_time: Optional[str] = Field(None, description="Scheduled departure time")
     arrival_time: Optional[str] = Field(None, description="Estimated arrival time")
     flight_time: Optional[str] = Field(None, description="Total flight time")
+    air_time: Optional[str] = Field(None, description="Air time (wheels up to wheels down)")
+    block_time: Optional[str] = Field(None, description="Block time (gate to gate)")
+
+    # Route & Performance
     route: Optional[str] = Field(None, description="Flight route")
+    route_distance: Optional[str] = Field(None, description="Route distance (e.g., '3450 NM')")
     cruise_altitude: Optional[str] = Field(None, description="Cruise altitude (FL)")
-    fuel_planned: Optional[str] = Field(None, description="Planned fuel")
+    ci_value: Optional[str] = Field(None, description="Cost Index value")
+    average_wind: Optional[str] = Field(None, description="Average wind (e.g., 'H045/25')")
+
+    # Fuel
+    fuel_planned: Optional[str] = Field(None, description="Block fuel")
+
+    # Load Sheet
+    passenger_count: Optional[str] = Field(None, description="Passenger count")
+    baggage: Optional[str] = Field(None, description="Baggage weight")
+    payload: Optional[str] = Field(None, description="Payload weight")
+    ezfw: Optional[str] = Field(None, description="Estimated Zero Fuel Weight")
+    etow: Optional[str] = Field(None, description="Estimated Take-Off Weight")
+    elw: Optional[str] = Field(None, description="Estimated Landing Weight")
+
+    # Weather
+    metar_departure: Optional[str] = Field(None, description="METAR for departure airport")
+    metar_arrival: Optional[str] = Field(None, description="METAR for arrival airport")
 
 
 class AnalysisResponse(BaseModel):

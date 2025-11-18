@@ -30,40 +30,58 @@ class FlightDataExtractor:
         Returns:
             FlightData object with extracted information
         """
-        # Limit text to avoid token limits (first 6000 chars of OFP usually contains all key info)
-        text_sample = ofp_text[:6000]
+        # Limit text to avoid token limits (first 8000 chars of OFP contains most key info)
+        text_sample = ofp_text[:8000]
 
-        prompt = f"""Extract flight information from this Operational Flight Plan (OFP).
+        prompt = f"""Extract comprehensive flight information from this Operational Flight Plan (OFP).
 
 OFP Content:
 {text_sample}
 
-Return ONLY valid JSON with this structure:
+Return ONLY valid JSON with this COMPLETE structure:
 {{
     "flight_number": "string or null",
-    "aircraft_type": "string or null (e.g., B777-300ER, A320)",
+    "flight_date": "string or null (e.g., '18 NOV 2025')",
+    "aircraft_type": "string or null (e.g., 'B777-300ER', 'A320')",
     "aircraft_registration": "string or null",
     "airline": "string or null",
-    "airline_icao": "string or null (e.g., AFR, UAL)",
+    "airline_icao": "string or null (e.g., 'AFR', 'UAL')",
     "departure_icao": "string or null (4-letter ICAO)",
     "departure_name": "string or null",
     "arrival_icao": "string or null (4-letter ICAO)",
     "arrival_name": "string or null",
     "alternate_icao": "string or null",
-    "departure_time": "string or null (HHMM format like 1430 for 2:30 PM UTC)",
-    "arrival_time": "string or null (HHMM format like 2315 for 11:15 PM UTC)",
-    "flight_time": "string or null (leave as null, will be calculated)",
+    "departure_time": "string or null (HHMM format)",
+    "arrival_time": "string or null (HHMM format)",
+    "flight_time": "string or null (leave as null)",
+    "air_time": "string or null (e.g., '8:25')",
+    "block_time": "string or null (e.g., '8:45')",
     "route": "string or null (waypoints)",
+    "route_distance": "string or null (e.g., '3450 NM')",
     "cruise_altitude": "string or null (e.g., 'FL350')",
-    "fuel_planned": "string or null (BLOCK FUEL value with unit, e.g., '45000 KG' or '99200 LBS')"
+    "ci_value": "string or null (Cost Index, e.g., '52')",
+    "average_wind": "string or null (e.g., 'H045/25' for headwind)",
+    "fuel_planned": "string or null (BLOCK FUEL with unit)",
+    "passenger_count": "string or null (e.g., '285 PAX')",
+    "baggage": "string or null (weight with unit)",
+    "payload": "string or null (weight with unit)",
+    "ezfw": "string or null (Est Zero Fuel Weight)",
+    "etow": "string or null (Est Take-Off Weight)",
+    "elw": "string or null (Est Landing Weight)",
+    "metar_departure": "string or null (full METAR)",
+    "metar_arrival": "string or null (full METAR)"
 }}
 
-IMPORTANT INSTRUCTIONS:
-- For departure_time and arrival_time: Extract in HHMM format (e.g., 1430, 0845, 2315)
-- For fuel_planned: Look specifically for "BLOCK FUEL" or "BLOCK" in the fuel section
-- Leave flight_time as null (it will be calculated automatically)
-- Use null for any field you cannot find
-- Be precise and extract exact values from the OFP"""
+CRITICAL EXTRACTION INSTRUCTIONS:
+1. TIMING: Extract departure/arrival in HHMM format, find AIR TIME and BLOCK TIME explicitly
+2. FUEL: Look for "BLOCK FUEL" or "BLOCK" in fuel section
+3. PERFORMANCE: Find CI (Cost Index), route distance in NM, average wind component
+4. LOAD SHEET: Look for passenger count (PAX), baggage, payload, ZFW, TOW, LW sections
+5. WEATHER: Extract complete METAR strings for departure and arrival airports
+6. DATE: Find flight date (usually at top of OFP in format like "18NOV2025" or "18 NOV 2025")
+7. Use null for any field not found
+8. Include units (KG/LBS for weights, NM for distance)
+9. Leave flight_time as null (will be calculated)"""
 
         try:
             response = openai.chat.completions.create(
@@ -79,7 +97,7 @@ IMPORTANT INSTRUCTIONS:
                     }
                 ],
                 temperature=0.1,  # Low temperature for precise extraction
-                max_tokens=500
+                max_tokens=800  # Increased for comprehensive data extraction
             )
 
             # Extract and parse JSON response
