@@ -124,3 +124,11 @@ export const generateBriefing = async (
 export const downloadBriefing = (fileId: string): string => {
   return `${API_URL}/api/download/${fileId}`
 }
+
+export const fetchSimbriefPlan = async (username: string): Promise<AnalysisResponse> => {
+  const response = await api.post<AnalysisResponse>('/simbrief/fetch', {
+    username: username,
+  })
+
+  return response.data
+}

@@ -101,6 +101,10 @@ class GenerateResponse(BaseModel):
     total_pages: int
 
 
+class SimbriefRequest(BaseModel):
+    username: str = Field(..., description="SimBrief username to fetch flight plan")
+
+
 class ErrorResponse(BaseModel):
     error: str
     detail: Optional[str] = None

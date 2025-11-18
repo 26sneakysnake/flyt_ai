@@ -14,10 +14,12 @@ from app.models.schemas import (
     GenerateRequest,
     GenerateResponse,
     ErrorResponse,
-    FlightPlanSection
+    FlightPlanSection,
+    SimbriefRequest
 )
 from app.services import PDFParser, AIAnalyzer, PDFGenerator
 from app.services.flight_data_extractor import FlightDataExtractor
+from app.services.simbrief_service import SimbriefService
 
 logger = logging.getLogger(__name__)
 
@@ -31,6 +33,7 @@ pdf_parser = PDFParser()
 ai_analyzer = AIAnalyzer()
 pdf_generator = PDFGenerator()
 flight_extractor = FlightDataExtractor()
+simbrief_service = SimbriefService()
 
 # Get upload directory from environment
 UPLOAD_DIR = os.getenv("UPLOAD_DIR", "/tmp/uploads")
@@ -316,3 +319,66 @@ async def cleanup_files(file_id: str):
     del file_storage[file_id]
 
     return {"message": "Files cleaned up successfully"}
+
+
+@router.post("/simbrief/fetch", response_model=AnalysisResponse)
+async def fetch_simbrief_plan(request: SimbriefRequest):
+    """
+    Fetch flight plan from SimBrief API using username.
+
+    - **username**: SimBrief username
+    """
+    try:
+        # Fetch flight plan from SimBrief
+        logger.info(f"Fetching SimBrief flight plan for user: {request.username}")
+        simbrief_data = await simbrief_service.fetch_flight_plan(request.username)
+
+        # Map to FlightData
+        logger.info(f"Mapping SimBrief data to FlightData model")
+        flight_data = simbrief_service.map_to_flight_data(simbrief_data)
+
+        # Generate a file_id for consistency
+        file_id = str(uuid.uuid4())
+
+        # Store flight data (no actual file, but keep storage structure)
+        file_storage[file_id] = {
+            "filename": f"SimBrief_{request.username}.json",
+            "file_path": None,  # No file for SimBrief
+            "total_pages": 0,  # Not applicable
+            "analyzed": True,
+            "sections": [],  # No sections for SimBrief
+            "overall_summary": f"Flight plan fetched from SimBrief for {flight_data.flight_number or 'Unknown Flight'}",
+            "flight_data": flight_data,
+            "simbrief_username": request.username
+        }
+
+        logger.info(f"Successfully fetched SimBrief flight plan: {file_id}")
+
+        return AnalysisResponse(
+            file_id=file_id,
+            sections=[],  # No sections for SimBrief
+            total_pages=0,
+            analysis_summary=f"Flight plan loaded from SimBrief for flight {flight_data.flight_number or 'N/A'} from {flight_data.departure_airport or 'N/A'} to {flight_data.arrival_airport or 'N/A'}",
+            flight_data=flight_data
+        )
+
+    except httpx.HTTPStatusError as e:
+        if e.response.status_code == 400:
+            logger.error(f"Invalid SimBrief username: {request.username}")
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Invalid SimBrief username or no flight plan found for user: {request.username}"
+            )
+        else:
+            logger.error(f"SimBrief API error: {str(e)}")
+            raise HTTPException(
+                status_code=status.HTTP_502_BAD_GATEWAY,
+                detail=f"SimBrief API error: {str(e)}"
+            )
+
+    except Exception as e:
+        logger.error(f"Error fetching SimBrief flight plan: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to fetch SimBrief flight plan: {str(e)}"
+        )

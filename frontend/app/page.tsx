@@ -2,9 +2,8 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import FileUpload from '@/components/FileUpload'
 import LoadingSpinner from '@/components/LoadingSpinner'
-import { uploadPDF, analyzePDF } from '@/lib/api'
+import { fetchSimbriefPlan } from '@/lib/api'
 import { Plane, AlertCircle } from 'lucide-react'
 
 export default function HomePage() {
@@ -12,21 +11,24 @@ export default function HomePage() {
   const [isProcessing, setIsProcessing] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [processingStep, setProcessingStep] = useState<string>('')
+  const [username, setUsername] = useState('')
 
-  const handleFileSelect = async (file: File) => {
+  const handleSimbriefFetch = async (e: React.FormEvent) => {
+    e.preventDefault()
+
+    if (!username.trim()) {
+      setError('Please enter your SimBrief username')
+      return
+    }
+
     setError(null)
     setIsProcessing(true)
 
     try {
-      // Step 1: Upload
-      setProcessingStep('Uploading flight plan...')
-      const uploadResponse = await uploadPDF(file)
-      console.log('Upload successful:', uploadResponse)
-
-      // Step 2: Analyze
-      setProcessingStep('Analyzing with AI (this may take up to 30 seconds)...')
-      const analysisResponse = await analyzePDF(uploadResponse.file_id)
-      console.log('Analysis successful:', analysisResponse)
+      // Fetch from SimBrief
+      setProcessingStep('Fetching flight plan from SimBrief...')
+      const analysisResponse = await fetchSimbriefPlan(username.trim())
+      console.log('SimBrief fetch successful:', analysisResponse)
 
       // Store analysis data in sessionStorage for the next page
       sessionStorage.setItem('analysisData', JSON.stringify(analysisResponse))
@@ -34,11 +36,11 @@ export default function HomePage() {
       // Navigate to briefing dashboard
       router.push('/briefing')
     } catch (err: any) {
-      console.error('Error processing file:', err)
+      console.error('Error fetching SimBrief plan:', err)
       setError(
         err.response?.data?.detail ||
           err.message ||
-          'Failed to process flight plan. Please try again.'
+          'Failed to fetch flight plan from SimBrief. Please check your username and try again.'
       )
       setIsProcessing(false)
     }
@@ -67,36 +69,61 @@ export default function HomePage() {
           {!isProcessing ? (
             <div className="text-center mb-8">
               <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                Upload Your Flight Plan
+                Load Your Flight Plan from SimBrief
               </h2>
               <p className="text-gray-600 mb-8 max-w-2xl mx-auto">
-                Upload your flight plan PDF and let our AI analyze it for you. Select the
-                sections you need and generate a customized briefing in seconds.
+                Enter your SimBrief username to fetch your latest flight plan and view a comprehensive flight briefing with all the details you need.
               </p>
 
-              <FileUpload onFileSelect={handleFileSelect} isUploading={isProcessing} />
+              {/* SimBrief Username Form */}
+              <form onSubmit={handleSimbriefFetch} className="max-w-md mx-auto mb-8">
+                <div className="bg-white p-8 rounded-lg shadow-lg border">
+                  <label htmlFor="username" className="block text-left text-sm font-medium text-gray-700 mb-2">
+                    SimBrief Username
+                  </label>
+                  <input
+                    type="text"
+                    id="username"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    placeholder="Enter your SimBrief username"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                    disabled={isProcessing}
+                  />
+                  <button
+                    type="submit"
+                    disabled={isProcessing || !username.trim()}
+                    className="w-full mt-4 bg-blue-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+                  >
+                    Fetch Flight Plan
+                  </button>
+                  <p className="text-xs text-gray-500 mt-3 text-left">
+                    Don't have a SimBrief account? <a href="https://www.simbrief.com/system/register.php" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Register here</a>
+                  </p>
+                </div>
+              </form>
 
               {/* Features */}
               <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
                 <div className="bg-white p-6 rounded-lg shadow-sm border">
-                  <div className="text-2xl mb-3">📄</div>
-                  <h3 className="font-semibold text-gray-900 mb-2">Smart Parsing</h3>
+                  <div className="text-2xl mb-3">🌐</div>
+                  <h3 className="font-semibold text-gray-900 mb-2">SimBrief Integration</h3>
                   <p className="text-sm text-gray-600">
-                    Automatically identifies OFP, NOTAMs, weather, fuel planning, and more
+                    Directly fetch your flight plans from SimBrief with all the data you need
                   </p>
                 </div>
                 <div className="bg-white p-6 rounded-lg shadow-sm border">
-                  <div className="text-2xl mb-3">🤖</div>
-                  <h3 className="font-semibold text-gray-900 mb-2">AI Analysis</h3>
+                  <div className="text-2xl mb-3">📊</div>
+                  <h3 className="font-semibold text-gray-900 mb-2">Comprehensive Dashboard</h3>
                   <p className="text-sm text-gray-600">
-                    GPT-4 evaluates section criticality and provides concise summaries
+                    View flight data, route maps, weather, load sheet, and performance info
                   </p>
                 </div>
                 <div className="bg-white p-6 rounded-lg shadow-sm border">
                   <div className="text-2xl mb-3">✈️</div>
-                  <h3 className="font-semibold text-gray-900 mb-2">Custom Briefing</h3>
+                  <h3 className="font-semibold text-gray-900 mb-2">Professional Briefing</h3>
                   <p className="text-sm text-gray-600">
-                    Generate a tailored PDF with only the sections you need
+                    Get a clean, organized briefing with all essential flight information
                   </p>
                 </div>
               </div>
