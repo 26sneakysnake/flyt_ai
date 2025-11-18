@@ -6,6 +6,7 @@ import shutil
 import asyncio
 from typing import Dict
 import logging
+import httpx
 
 from app.models.schemas import (
     UploadResponse,
@@ -358,7 +359,7 @@ async def fetch_simbrief_plan(request: SimbriefRequest):
             file_id=file_id,
             sections=[],  # No sections for SimBrief
             total_pages=0,
-            analysis_summary=f"Flight plan loaded from SimBrief for flight {flight_data.flight_number or 'N/A'} from {flight_data.departure_airport or 'N/A'} to {flight_data.arrival_airport or 'N/A'}",
+            analysis_summary=f"Flight plan loaded from SimBrief for flight {flight_data.flight_number or 'N/A'} from {flight_data.departure_icao or 'N/A'} to {flight_data.arrival_icao or 'N/A'}",
             flight_data=flight_data
         )
 

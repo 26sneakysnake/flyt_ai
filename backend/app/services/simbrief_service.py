@@ -203,34 +203,29 @@ class SimbriefService:
             aircraft_registration=self._safe_get(aircraft, "reg"),
             airline=self._safe_get(general, "icao_airline"),
 
-            # Departure
-            departure_airport=self._safe_get(origin, "icao_code"),
+            # Route Info
+            departure_icao=self._safe_get(origin, "icao_code"),
+            departure_name=self._safe_get(origin, "name"),
+            arrival_icao=self._safe_get(destination, "icao_code"),
+            arrival_name=self._safe_get(destination, "name"),
+            alternate_icao=self._safe_get(simbrief_data.get("alternate", {}), "icao_code"),
+
+            # Timing
             departure_time=self._format_time(departure_time),
-            departure_gate=None,  # Not available in SimBrief
-            departure_runway=self._safe_get(origin, "plan_rwy"),
-
-            # Arrival
-            arrival_airport=self._safe_get(destination, "icao_code"),
             arrival_time=self._format_time(arrival_time),
-            arrival_gate=None,  # Not available in SimBrief
-            arrival_runway=self._safe_get(destination, "plan_rwy"),
-
-            # Flight Info
             flight_time=flight_time,
-            route=route,
-            alternate_airport=self._safe_get(simbrief_data.get("alternate", {}), "icao_code"),
-
-            # Performance
-            cruise_altitude=cruise_altitude or self._safe_get(general, "initial_altitude"),
-            cost_index=self._safe_get(general, "costindex"),
-            average_wind=self._safe_get(general, "avg_wind_dir") + "/" + self._safe_get(general, "avg_wind_spd"),
-            route_distance=self._safe_get(general, "route_distance"),
             air_time=self._safe_get(times, "est_time_enroute"),
             block_time=self._safe_get(times, "est_block"),
 
+            # Route & Performance
+            route=route,
+            route_distance=self._safe_get(general, "route_distance"),
+            cruise_altitude=cruise_altitude or self._safe_get(general, "initial_altitude"),
+            ci_value=self._safe_get(general, "costindex"),
+            average_wind=self._safe_get(general, "avg_wind_dir") + "/" + self._safe_get(general, "avg_wind_spd"),
+
             # Fuel
             fuel_planned=self._safe_get(fuel, "plan_ramp"),  # Block fuel
-            fuel_units=self._safe_get(simbrief_data.get("params", {}), "units"),
 
             # Load Sheet
             passenger_count=self._safe_get(weights, "pax_count"),
